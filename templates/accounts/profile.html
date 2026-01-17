@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    
+    <!-- LEFT SIDE: PROFILE SETTINGS -->
+    <div class="col-md-5 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 20px; z-index: 1;">
+            <div class="text-center mb-4">
+                <!-- User Image: Forced to be a circle -->
+                <img src="{{ user.profile.image.url }}" 
+                     onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/847/847969.png';"
+                     class="rounded-circle mb-3 border border-3 border-success" 
+                     style="width: 130px; height: 130px; object-fit: cover; aspect-ratio: 1/1;">
+                
+                <h3 class="fw-bold">{{ user.username }}</h3>
+                <div class="badge bg-success rounded-pill px-3">{{ user.profile.get_goal_display }}</div>
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Error Messages -->
+                {% if u_form.errors or p_form.errors %}
+                    <div class="alert alert-danger small p-2">Check details below</div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="fw-bold small text-muted">Username</label>
+                    {{ u_form.username }}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="fw-bold small text-muted">Profile Photo</label>
+                    {{ p_form.image }}
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label class="small fw-bold text-muted">Age</label>
+                        {{ p_form.age }}
+                    </div>
+                    <div class="col-4">
+                        <label class="small fw-bold text-muted">Weight</label>
+                        {{ p_form.weight }}
+                    </div>
+                    <div class="col-4">
+                        <label class="small fw-bold text-muted">Height</label>
+                        {{ p_form.height }}
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <!-- Hidden fields to prevent data loss if not displayed -->
+                     {{ u_form.email.as_hidden }}
+                     {{ p_form.goal.as_hidden }}
+                    <button class="btn btn-success w-100 rounded-pill fw-bold" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE: MY POSTS -->
+    <div class="col-md-7">
+        <h4 class="mb-4 text-secondary fw-bold">My Activity</h4>
+        
+        {% if posts %}
+            {% for post in posts %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-3">
+                    <!-- Post Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <img src="{{ post.author.profile.image.url }}" 
+                                 onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/847/847969.png';"
+                                 class="rounded-circle me-2 border" 
+                                 style="width: 45px; height: 45px; object-fit: cover; aspect-ratio: 1/1;">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ post.author.username }}</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ post.date_posted|timesince }} ago</small>
+                            </div>
+                        </div>
+
+                        <!-- Edit/Delete Menu -->
+                        <div class="dropdown">
+                            <button class="btn btn-link text-dark text-decoration-none p-0 border-0" 
+                                    type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                    style="font-size: 1.5rem; line-height: 1;">
+                                &#8230;
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                <li><a class="dropdown-item" href="{% url 'post-update' post.id %}">✏️ Edit</a></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'post-delete' post.id %}" onclick="return confirm('Delete?');">🗑️ Delete</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <p class="card-text fs-5 mb-3">{{ post.content|linebreaksbr }}</p>
+
+                    {% if post.image %}
+                    <div class="mb-3">
+                        <img src="{{ post.image.url }}" class="img-fluid rounded-3 w-100 border" style="max-height: 400px; object-fit: cover;">
+                    </div>
+                    {% endif %}
+
+                    <!-- Stats -->
+                    <div class="d-flex align-items-center gap-2 border-top pt-2 mb-3">
+                        <span class="text-muted small">❤️ {{ post.likes.count }} Likes</span>
+                        <span class="text-muted small">💬 {{ post.comments.count }} Comments</span>
+                    </div>
+
+                    <!-- COMMENTS SECTION -->
+                    {% if post.comments.all %}
+                    <div class="bg-light p-3 rounded-3">
+                        <h6 class="small text-muted mb-2">Recent Comments:</h6>
+                        {% for comment in post.comments.all %}
+                            <div class="d-flex mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="bg-white p-2 rounded-3 border {% if comment.is_ai %}border-success{% endif %}">
+                                        <strong class="d-block small {% if comment.is_ai %}text-success{% else %}text-dark{% endif %}">
+                                            {{ comment.author_name }} {% if comment.is_ai %}✨{% endif %}
+                                        </strong>
+                                        <span class="small">{{ comment.content }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <!-- END COMMENTS SECTION -->
+
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <h4>No posts yet! 🥑</h4>
+                <p>Share your first meal on the home page.</p>
+                <a href="{% url 'home' %}" class="btn btn-success rounded-pill">Go to Feed</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Clean CSS for Inputs -->
+<style>
+    input[type="text"], input[type="email"], input[type="number"], select, input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        margin-bottom: 5px;
+    }
+    input:focus, select:focus {
+        border-color: #6ab04c;
+        outline: none;
+        background-color: #fff;
+    }
+</style>
+{% endblock %}

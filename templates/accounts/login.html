@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        
+        <!-- LEFT: Form Section -->
+        <div class="auth-form-side">
+            <div class="mb-5">
+                <h2 style="font-weight: 700; color: #2d3436; margin-bottom: 5px;">Login</h2>
+                <p style="color: #b2bec3; font-size: 0.9rem;">Welcome back to CalorieMedia</p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div style="background: #ffecec; color: #e74c3c; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+                        Username or password is incorrect.
+                    </div>
+                {% endif %}
+
+                <div>
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control-custom" placeholder="Enter your username" required>
+                </div>
+
+                <div>
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control-custom" placeholder="Enter your password" required>
+                </div>
+
+                <button class="btn-auth" type="submit">Sign In</button>
+            </form>
+
+            <div style="margin-top: 30px; text-align: center; font-size: 0.9rem; color: #636e72;">
+                Don't have an account? <a href="{% url 'register' %}" class="auth-link">Sign up</a>
+            </div>
+        </div>
+
+        <!-- RIGHT: Image Section -->
+        <div class="auth-image-side">
+            <!-- Image loaded via CSS background -->
+        </div>
+
+    </div>
+</div>
+{% endblock %}
